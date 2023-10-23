@@ -6,16 +6,12 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
-import javax.swing.filechooser.FileFilter;
 
 import acm.graphics.GImage;
 import acm.graphics.GLabel;
@@ -31,8 +27,8 @@ import player.SoundPlayer;
 @SuppressWarnings("serial")
 public class MazeGame extends GraphicsProgram {
 
-	public static final int WIDTH = 500;
-	public static final int HEIGHT = 500;
+	public static final int WIDTH = 1440;
+	public static final int HEIGHT = 900;
 
 	private Player player;
 	private Set<Wall> walls;
@@ -48,12 +44,13 @@ public class MazeGame extends GraphicsProgram {
 
 	@Override
 	public void run() {
-		setTitle("scare maze");
+		setTitle("???");
 		setSize(WIDTH + 17, HEIGHT + 63);
 		setBackground(Color.CYAN);
 		background = new GRect(0, 0);
 		add(background);
 		SoundPlayer.init();
+		SoundPlayer.playBgSong();
 
 		showMenu();
 	}
@@ -65,78 +62,29 @@ public class MazeGame extends GraphicsProgram {
 
 		Font font = new Font("Verdana", 0, 20);
 
-		GLabel scareMaze = new GLabel("SCARE MAZE");
-		scareMaze.setColor(Color.WHITE);
-		scareMaze.setFont(new Font("Verdana", Font.BOLD, 40));
-		scareMaze.setLocation((getWidth() - scareMaze.getWidth()) / 2, getHeight() * 0.4);
-		add(scareMaze);
+		GImage titleImage = new GImage("title.png", 0, 0);
+		titleImage.setSize(700, 80);
+		titleImage.setLocation((getWidth() - titleImage.getWidth()) / 2, getHeight() * 0.4);
+		add(titleImage);
 
-		GLabel defaultGame = new GLabel("default game");
+		GLabel defaultGame = new GLabel("start");
 		defaultGame.setColor(Color.WHITE);
 		defaultGame.setFont(font);
-		add(defaultGame);
-
-		GLabel customLevels = new GLabel("custom levels");
-		customLevels.setColor(Color.WHITE);
-		customLevels.setFont(font);
-		add(customLevels);
-
-		defaultGame.setLocation((getWidth() - defaultGame.getWidth() - customLevels.getWidth() - 80) / 2,
+		defaultGame.setLocation((getWidth() - defaultGame.getWidth()) / 2,
 				getHeight() * 0.6);
-		customLevels.setLocation(defaultGame.getX() + defaultGame.getWidth() + 80, defaultGame.getY());
 
 		defaultGame.addMouseListener(new MouseAdapter() {
 			public void mousePressed(MouseEvent event) {
 				remove(blackBackground);
-				remove(scareMaze);
+				remove(titleImage);
 				remove(defaultGame);
-				remove(customLevels);
 
 				levelManager = defaultLevelManager;
 				showMaze(levelManager.restart());
 			}
 		});
-
-		customLevels.addMouseListener(new MouseAdapter() {
-			public void mousePressed(MouseEvent event) {
-
-				JFileChooser fileopen = new JFileChooser();
-				fileopen.setMultiSelectionEnabled(true);
-				fileopen.setFileFilter(mazeFileFilter);
-
-				if (fileopen.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-					List<String> pathes = Arrays.stream(fileopen.getSelectedFiles()).map(File::getAbsolutePath)
-							.filter(path -> path.matches(".*\\.maze")).collect(Collectors.toList());
-					try {
-
-						levelManager = new LevelManager(pathes);
-
-						remove(defaultGame);
-						customLevels.removeMouseListener(this);
-						remove(customLevels);
-						remove(blackBackground);
-						remove(scareMaze);
-						showMaze(levelManager.restart());
-
-					} catch (FileNotFoundException e) {
-						e.printStackTrace();
-					}
-				}
-			}
-		});
+		add(defaultGame);
 	}
-
-	private static FileFilter mazeFileFilter = new FileFilter() {
-		public boolean accept(File file) {
-			String fileName = file.getName();
-			String format = fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
-			return file.isDirectory() || format.equals("maze");
-		}
-
-		public String getDescription() {
-			return "maze model file (.maze)";
-		}
-	};
 
 	private void showMaze(MazeReader reader) {
 		if (player != null) {
@@ -188,17 +136,17 @@ public class MazeGame extends GraphicsProgram {
 
 		if (levelManager.isCurrentLevelLast()) {
 			System.out.println("lose");
-			
+
 			GImage scaryImage = new GImage("scarymaze.jpg", 0, 0);
 			scaryImage.setSize(getWidth(), getHeight());
 			add(scaryImage);
+			SoundPlayer.playScream();
 			scaryImage.addMouseListener(new MouseAdapter() {
 				public void mouseClicked(MouseEvent event) {
 					remove(scaryImage);
 					showMenu();
 				}
 			});
-			SoundPlayer.playScream();
 		} else {
 			showMenu();
 		}
@@ -238,32 +186,24 @@ public class MazeGame extends GraphicsProgram {
 		remove(player);
 		background.removeMouseMotionListener(motionListener);
 		if (levelManager.isCurrentLevelLast()) {
-			GRect congratulationsBackground = new GRect(0, 0, getWidth(), getHeight());
-			congratulationsBackground.setFilled(true);
-			GLabel congratulations = new GLabel("congratulations");
-			congratulations.setColor(Color.WHITE);
-			congratulations.setFont(new Font("Verdana", Font.BOLD, 30));
-			congratulations.setLocation((getWidth() - congratulations.getWidth()) / 2,
-					getHeight() * 0.6);
-			add(congratulationsBackground);
-			add(congratulations);
-			congratulationsBackground.addMouseListener(new MouseAdapter() {
-				public void mousePressed(MouseEvent event) {
-					congratulationsBackground.removeMouseListener(this);
-					remove(congratulationsBackground);
-					remove(congratulations);
+			GImage scaryImage = new GImage("scarymaze.jpg", 0, 0);
+			scaryImage.setSize(getWidth(), getHeight());
+			add(scaryImage);
+			SoundPlayer.playScream();
+			scaryImage.addMouseListener(new MouseAdapter() {
+				public void mouseClicked(MouseEvent event) {
+					remove(scaryImage);
 					showMenu();
 				}
 			});
-
 		} else {
 			showMaze(levelManager.nextLevel());
 		}
 	}
 
 	public static void main(String[] args) {
-		
-		List<String> fileNames = Arrays.asList("1.maze", "2.maze", "3.maze");
+
+		List<String> fileNames = Arrays.asList("maze1.maze", "maze2.maze", "maze3.maze");
 
 		try {
 			LevelManager manager = new LevelManager(fileNames);
