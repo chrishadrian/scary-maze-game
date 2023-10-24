@@ -10,6 +10,7 @@ import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.TimerTask;
 
 import javax.swing.JFrame;
 
@@ -86,6 +87,17 @@ public class MazeGame extends GraphicsProgram {
 		add(defaultGame);
 	}
 
+	private void showEnd() {
+		GRect blackBackground = new GRect(0, 0, getWidth(), getHeight());
+		blackBackground.setFilled(true);
+		add(blackBackground);
+
+		GImage endImage = new GImage("end.jpeg", 0, 0);
+		endImage.setSize(getWidth(), getHeight());
+		endImage.setLocation(0, 0);
+		add(endImage);
+	}
+
 	private void showMaze(MazeReader reader) {
 		if (player != null) {
 			remove(player);
@@ -141,12 +153,13 @@ public class MazeGame extends GraphicsProgram {
 			scaryImage.setSize(getWidth(), getHeight());
 			add(scaryImage);
 			SoundPlayer.playScream();
-			scaryImage.addMouseListener(new MouseAdapter() {
-				public void mouseClicked(MouseEvent event) {
+			new java.util.Timer().schedule(new TimerTask() {
+				@Override
+				public void run() {
 					remove(scaryImage);
-					showMenu();
+					showEnd();
 				}
-			});
+			}, 1000 * 3);
 		} else {
 			showMenu();
 		}
@@ -203,7 +216,7 @@ public class MazeGame extends GraphicsProgram {
 
 	public static void main(String[] args) {
 
-		List<String> fileNames = Arrays.asList("maze1.maze", "maze2.maze", "maze3.maze");
+		List<String> fileNames = Arrays.asList("maze3.maze");
 
 		try {
 			LevelManager manager = new LevelManager(fileNames);
