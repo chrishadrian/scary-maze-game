@@ -216,7 +216,7 @@ public class MazeGame extends GraphicsProgram {
 
 	public static void main(String[] args) {
 
-		List<String> fileNames = Arrays.asList("maze3.maze");
+		List<String> fileNames = Arrays.asList("maze1.maze", "maze2.maze", "maze3.maze");
 
 		try {
 			LevelManager manager = new LevelManager(fileNames);
