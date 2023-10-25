@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.TimerTask;
 
+import java.awt.Dimension;
+import java.awt.Toolkit;
 import javax.swing.JFrame;
 
 import acm.graphics.GImage;
@@ -27,9 +29,11 @@ import player.SoundPlayer;
 
 @SuppressWarnings("serial")
 public class MazeGame extends GraphicsProgram {
-
-	public static final int WIDTH = 1440;
-	public static final int HEIGHT = 900;
+	Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+	int width = (int) screenSize.getWidth();
+	int height = (int) screenSize.getHeight();
+	public final int WIDTH = width;
+	public final int HEIGHT = height;
 
 	private Player player;
 	private Set<Wall> walls;
@@ -81,7 +85,7 @@ public class MazeGame extends GraphicsProgram {
 				remove(defaultGame);
 
 				levelManager = defaultLevelManager;
-				showMaze(levelManager.restart());
+				showMaze(levelManager.restart(), defaultGame);
 			}
 		});
 		add(defaultGame);
@@ -98,7 +102,10 @@ public class MazeGame extends GraphicsProgram {
 		add(endImage);
 	}
 
-	private void showMaze(MazeReader reader) {
+	private void showMaze(MazeReader reader, GLabel defaultGame) {
+		if (defaultGame != null) {
+			remove(defaultGame);
+		}
 		if (player != null) {
 			remove(player);
 		}
@@ -118,6 +125,9 @@ public class MazeGame extends GraphicsProgram {
 		add(finish);
 		add(player);
 
+		GRect blackBackground = new GRect(0, 0, getWidth(), getHeight());
+		blackBackground.setFilled(true);
+		add(blackBackground);
 		GLabel level = new GLabel("level #" + (levelManager.getIndex() + 1));
 		level.setColor(Color.WHITE);
 		level.setFont(new Font("Verdana", Font.BOLD, 40));
@@ -129,15 +139,14 @@ public class MazeGame extends GraphicsProgram {
 		add(levelBackground);
 		add(level);
 
-		new Thread(() -> {
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+		new java.util.Timer().schedule(new TimerTask() {
+			@Override
+			public void run() {
+				remove(levelBackground);
+				remove(level);
+				remove(blackBackground);
 			}
-			remove(levelBackground);
-			remove(level);
-		}).start();
+		}, 1000 * 1);
 
 		player.addMouseListener(playerMouseListener);
 	}
@@ -161,7 +170,20 @@ public class MazeGame extends GraphicsProgram {
 				}
 			}, 1000 * 3);
 		} else {
-			showMenu();
+			showMaze(levelManager.restart(), null);
+		}
+	}
+
+	private void win() {
+		remove(player);
+		background.removeMouseMotionListener(motionListener);
+		if (levelManager.isCurrentLevelLast()) {
+			GImage scaryImage = new GImage("scarymaze.jpg", 0, 0);
+			scaryImage.setSize(getWidth(), getHeight());
+			add(scaryImage);
+			SoundPlayer.playScream();
+		} else {
+			showMaze(levelManager.nextLevel(), null);
 		}
 	}
 
@@ -194,25 +216,6 @@ public class MazeGame extends GraphicsProgram {
 			mouseMoved(event);
 		}
 	};
-
-	private void win() {
-		remove(player);
-		background.removeMouseMotionListener(motionListener);
-		if (levelManager.isCurrentLevelLast()) {
-			GImage scaryImage = new GImage("scarymaze.jpg", 0, 0);
-			scaryImage.setSize(getWidth(), getHeight());
-			add(scaryImage);
-			SoundPlayer.playScream();
-			scaryImage.addMouseListener(new MouseAdapter() {
-				public void mouseClicked(MouseEvent event) {
-					remove(scaryImage);
-					showMenu();
-				}
-			});
-		} else {
-			showMaze(levelManager.nextLevel());
-		}
-	}
 
 	public static void main(String[] args) {
 
