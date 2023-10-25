@@ -118,6 +118,9 @@ public class MazeGame extends GraphicsProgram {
 		add(finish);
 		add(player);
 
+		GRect blackBackground = new GRect(0, 0, getWidth(), getHeight());
+		blackBackground.setFilled(true);
+		add(blackBackground);
 		GLabel level = new GLabel("level #" + (levelManager.getIndex() + 1));
 		level.setColor(Color.WHITE);
 		level.setFont(new Font("Verdana", Font.BOLD, 40));
@@ -137,6 +140,7 @@ public class MazeGame extends GraphicsProgram {
 			}
 			remove(levelBackground);
 			remove(level);
+			remove(blackBackground);
 		}).start();
 
 		player.addMouseListener(playerMouseListener);
@@ -153,15 +157,48 @@ public class MazeGame extends GraphicsProgram {
 			scaryImage.setSize(getWidth(), getHeight());
 			add(scaryImage);
 			SoundPlayer.playScream();
+			GRect blackBackground = new GRect(0, 0, getWidth(), getHeight());
+			blackBackground.setFilled(true);
+			add(blackBackground);
 			new java.util.Timer().schedule(new TimerTask() {
 				@Override
 				public void run() {
 					remove(scaryImage);
+					remove(blackBackground);
 					showEnd();
 				}
 			}, 1000 * 3);
 		} else {
-			showMenu();
+			showMaze(levelManager.restart());
+		}
+	}
+
+	private void win() {
+		remove(player);
+		background.removeMouseMotionListener(motionListener);
+		if (levelManager.isCurrentLevelLast()) {
+			GImage scaryImage = new GImage("scarymaze.jpg", 0, 0);
+			scaryImage.setSize(getWidth(), getHeight());
+			add(scaryImage);
+			SoundPlayer.playScream();
+			GRect blackBackground = new GRect(0, 0, getWidth(), getHeight());
+			blackBackground.setFilled(true);
+			add(blackBackground);
+			scaryImage.addMouseListener(new MouseAdapter() {
+				public void mouseClicked(MouseEvent event) {
+					remove(scaryImage);
+					remove(blackBackground); // Remove the black background here
+					showMenu();
+				}
+
+				public void mouseDragged(MouseEvent event) {
+					remove(scaryImage);
+					remove(blackBackground); // Remove the black background here
+					showMenu();
+				}
+			});
+		} else {
+			showMaze(levelManager.nextLevel());
 		}
 	}
 
@@ -194,25 +231,6 @@ public class MazeGame extends GraphicsProgram {
 			mouseMoved(event);
 		}
 	};
-
-	private void win() {
-		remove(player);
-		background.removeMouseMotionListener(motionListener);
-		if (levelManager.isCurrentLevelLast()) {
-			GImage scaryImage = new GImage("scarymaze.jpg", 0, 0);
-			scaryImage.setSize(getWidth(), getHeight());
-			add(scaryImage);
-			SoundPlayer.playScream();
-			scaryImage.addMouseListener(new MouseAdapter() {
-				public void mouseClicked(MouseEvent event) {
-					remove(scaryImage);
-					showMenu();
-				}
-			});
-		} else {
-			showMaze(levelManager.nextLevel());
-		}
-	}
 
 	public static void main(String[] args) {
 
