@@ -39,8 +39,8 @@ public class MazeFactory extends GraphicsProgram {
 	private static final int FINISH_ID = 2;
 	private static final int PLAYER_ID = 3;
 
-	public static final int DEFAULT_WIDTH = 800;
-	public static final int DEFAULT_HEIGHT = 600;
+	public static final int DEFAULT_WIDTH = 1440;
+	public static final int DEFAULT_HEIGHT = 900;
 
 	@Override
 	public void run() {
@@ -87,7 +87,6 @@ public class MazeFactory extends GraphicsProgram {
 					currentFigure = FINISH_ID;
 					colorLabel.setColor(Color.PINK);
 					colorLabel.setFillColor(Finish.FINISH_COLOR.brighter().brighter());
-
 				} else if (event.getKeyChar() == String.valueOf(PLAYER_ID).charAt(0)) {
 					currentFigure = PLAYER_ID;
 					colorLabel.setColor(Color.PINK);
